@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News RAG System | Gemini-Powered Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4285F4;
+            --primary-dark: #3367D6;
+            --secondary: #34A853;
+            --error: #EA4335;
+            --text: #202124;
+            --text-light: #5F6368;
+            --bg: #FFFFFF;
+            --bg-light: #F8F9FA;
+            --border: #DADCE0;
+            --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            --radius: 12px;
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.5rem 0;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        button {
+            padding: 1rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .response-container {
+            display: none;
+            margin-top: 2rem;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .response-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .response-content {
+            background-color: var(--bg);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+
+        .response-content p {
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        .powered-by {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .powered-by img {
+            height: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(66, 133, 244, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>News RAG System</h1>
+            <p class="subtitle">Gemini-Powered Information Retrieval</p>
+        </header>
+
+        <form method="POST" class="search-form" id="searchForm">
+            <div class="input-group">
+                <label for="query">What would you like to know about recent news?</label>
+                <input 
+                    type="text" 
+                    id="query" 
+                    name="query" 
+                    required 
+                    value="{{query if query else ''}}"
+                    placeholder="E.g. What's happening with global economics in 2024?"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="use_rag" name="use_rag" checked>
+                <label for="use_rag">Enable Retrieval-Augmented Generation (RAG)</label>
+            </div>
+
+            <button type="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                Search
+            </button>
+        </form>
+
+        <div class="loading" id="loadingIndicator">
+            <div class="loading-spinner"></div>
+            <p>Analyzing news sources...</p>
+        </div>
+
+        {% if response %}
+        <div class="response-container" style="display: block;">
+            <div class="response-header">
+                <h3>Response</h3>
+            </div>
+            <div class="response-content">
+                <p>{{response}}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function formatResponse(text) {
+            // First handle line breaks
+            let html = text.replace(/\n/g, '<br>');
+            
+            // Fix numbered lists with proper incrementing numbers
+            let lines = html.split('<br>');
+            let inList = false;
+            let currentNumber = 0;
+            
+            for (let i = 0; i < lines.length; i++) {
+                // Detect list items starting with "1. "
+                if (/^\d+\.\s/.test(lines[i])) {
+                    if (!inList) {
+                        // Start of a new list
+                        lines[i] = lines[i].replace(/^\d+\.\s/, '<ol><li>');
+                        inList = true;
+                        currentNumber = 1;
+                    } else {
+                        // Continuing list - increment number
+                        currentNumber++;
+                        lines[i] = lines[i].replace(/^\d+\.\s/, `<li>`);
+                    }
+                } else if (inList) {
+                    // End of list
+                    lines[i-1] += '</li></ol>';
+                    inList = false;
+                }
+            }
+            
+            // Close any open list
+            if (inList) {
+                lines[lines.length-1] += '</li></ol>';
+            }
+            
+            html = lines.join('<br>');
+            
+            // Other formatting (bold, italics, links)
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
+            
+            return html;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const responseContent = document.querySelector('.response-content');
+            if (responseContent) {
+                // Get the raw text content (without any HTML interpretation)
+                const rawText = responseContent.textContent || responseContent.innerText;
+                responseContent.innerHTML = formatResponse(rawText);
+            }
+        });
+    </script>
+</body>
+</html>
